@@ -1,3 +1,7 @@
+//
+// Not Finished Yet
+//
+
 package main
 
 import (
@@ -36,8 +40,8 @@ func sortedArrayToBST(nums []int) *TreeNode {
 	rroot := sortedArrayToBST(nums[rootIndex+1:])
 
 	return &TreeNode{
-		Val: nums[rootIndex],
-		Left: lroot,
+		Val:   nums[rootIndex],
+		Left:  lroot,
 		Right: rroot,
 	}
 }
