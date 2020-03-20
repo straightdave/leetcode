@@ -16,82 +16,41 @@ func main() {
 	fmt.Println(reconstructQueue(a))
 }
 
-//
-// NOTICE: this works but will fail by "Time Limit Exceeds"
-//
 func reconstructQueue(people [][]int) [][]int {
 	people = qsort(people)
 
-	index := 0
-	for {
-		if index == len(people) {
-			// Done!
-			break
-		}
-
-		if ok, greaterBefore := needsMove(people, index); ok {
-			people = move(people, index, greaterBefore) // would change people!
-			// index = 0
-		} else {
-			index++
-		}
+	// as in such great order, we can just move each to its 'k' (as the new index)
+	for i := 0; i < len(people); i++ {
+		people = move(people, i)
 	}
-
 	return people
 }
 
-func move(people [][]int, index, greaterBefore int) [][]int {
-	ph := people[index][0]
-	pk := people[index][1]
-	howManyGreaterNeedsToSurpass := pk - greaterBefore
+func move(people [][]int, index int) [][]int {
+	// move people[index] to people[ k ]
+	k := people[index][1]
 
-	// calculate the newIndex
-	newIndex := -1
-	for i := index + 1; i < len(people); i++ {
-		p := people[i]
-
-		if p[0] >= ph {
-			howManyGreaterNeedsToSurpass--
-			if howManyGreaterNeedsToSurpass == 0 {
-				newIndex = i + 1
-				break
-			}
-		}
+	if k == index {
+		// no need to move
+		return people
 	}
 
-	// if newIndex's valid
-	if newIndex > index {
-		// insert one copy to newIndex
-		cp := make([]int, 2)
-		copy(cp, people[index])
+	// remove it from people first
+	p := make([]int, 2)
+	copy(p, people[index])
 
-		// copy tail
-		tail := people[newIndex:]
-		tail2 := make([][]int, len(tail))
-		copy(tail2, tail)
+	people = append(people[:index], people[index+1:]...)
 
-		people = append(append(people[:newIndex], cp), tail2...)
+	// insert it to new people[k]
+	tail := make([][]int, len(people[k:]))
+	copy(tail, people[k:])
 
-		// remove old one from index
-		people = append(people[:index], people[index+1:]...)
-	}
-
+	people = append(append(people[:k], p), tail...)
 	return people
 }
 
-func needsMove(people [][]int, index int) (bool, int) {
-	ph := people[index][0]
-	pk := people[index][1]
-	count := 0
-	for _, p := range people[:index] {
-		if p[0] >= ph {
-			count++
-		}
-	}
-	return pk != count, count
-}
-
-// sort by h (first) as well as k (second)
+// qsort by h (first) as well as k (second)
+// greater -> smaller (but for k, smaller -> greater)
 func qsort(a [][]int) [][]int {
 	if len(a) < 2 {
 		return a
@@ -106,8 +65,12 @@ func qsort(a [][]int) [][]int {
 	for _, p := range a[1:] {
 		if p[0] < pivot[0] {
 			smaller = append(smaller, p)
-		} else if p[0] == pivot[0] && p[1] < pivot[1] {
-			smaller = append(smaller, p)
+		} else if p[0] == pivot[0] {
+			if p[1] < pivot[1] {
+				greater = append(greater, p)
+			} else {
+				smaller = append(smaller, p)
+			}
 		} else {
 			greater = append(greater, p)
 		}
@@ -115,5 +78,5 @@ func qsort(a [][]int) [][]int {
 
 	smaller = qsort(smaller)
 	greater = qsort(greater)
-	return append(append(smaller, pivot), greater...)
+	return append(append(greater, pivot), smaller...)
 }
